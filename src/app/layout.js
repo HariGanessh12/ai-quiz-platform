@@ -1,12 +1,9 @@
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-
-const inter = Inter({ subsets: ["latin"] });
+import SmoothScroll from "@/components/SmoothScroll";
 
 export const metadata = {
   title: "AI Quiz Generator",
-  description: "Generate quizzes seamlessly using Google AI Studio and Groq.",
+  description: "Generate quizzes and build folder-based quiz sets with MongoDB.",
 };
 
 export default function RootLayout({ children }) {
@@ -26,11 +23,8 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={inter.className}>
-        <Navbar />
-        <main className="pt-24 min-h-screen">
-          <SmoothScroll>{children}</SmoothScroll>
-        </main>
+      <body>
+        <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
   );

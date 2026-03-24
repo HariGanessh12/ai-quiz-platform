@@ -1,6 +1,11 @@
+"use client";
 import QuizGenerator from "@/components/QuizGenerator";
-import ThreeBackground from "@/components/ThreeBackground";
+import dynamic from "next/dynamic";
 import ThemeToggle from "@/components/ThemeToggle";
+
+const ThreeBackground = dynamic(() => import("@/components/ThreeBackground"), {
+  ssr: false,
+});
 
 export default function Home() {
   return (

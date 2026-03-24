@@ -1,32 +1,58 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const QuizSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Please provide a quiz title.'],
-    maxlength: [100, 'Title cannot be more than 100 characters'],
+const QuestionSchema = new mongoose.Schema(
+  {
+    question: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    options: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: (value) => Array.isArray(value) && value.length === 4,
+        message: "Each question must have exactly four options.",
+      },
+    },
+    correctIndex: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 3,
+    },
+    correctAnswer: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
-  folderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Folder',
-    required: [true, 'Please provide a folder ID.'],
-  },
-  questions: {
-    type: Array,
-    default: [],
-  },
-  userId: {
-    type: String,
-    default: 'dummy_user_123', // Dummy user for now
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    _id: false,
+  }
+);
 
-export default mongoose.models.Quiz || mongoose.model('Quiz', QuizSchema);
+const QuizSchema = new mongoose.Schema(
+  {
+    folderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Folder",
+      required: true,
+      index: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    questions: {
+      type: [QuestionSchema],
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export default mongoose.models.Quiz || mongoose.model("Quiz", QuizSchema);
