@@ -28,7 +28,7 @@ export default function ThreeBackground() {
     containerRef.current.appendChild(renderer.domElement);
 
     const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 1800;
+    const particlesCount = 3000;
     const posArray = new Float32Array(particlesCount * 3);
 
     for (let i = 0; i < particlesCount * 3; i++) {
@@ -41,7 +41,7 @@ export default function ThreeBackground() {
       size: 0.1,
       color: 0x3b82f6,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.52,
       blending: THREE.AdditiveBlending,
     });
 
@@ -64,7 +64,7 @@ export default function ThreeBackground() {
     const sideBiasedCoord = (innerMin, outerMax) => randomSign() * randomRange(innerMin, outerMax);
 
     // Wider base field
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 30; i++) {
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(
         randomRange(-65, 65),
@@ -78,15 +78,15 @@ export default function ThreeBackground() {
     }
 
     // Extra edge-heavy meshes so sides/corners are always populated
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 26; i++) {
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(
-        sideBiasedCoord(38, 95),
-        sideBiasedCoord(20, 58),
-        randomRange(-85, 20)
+        sideBiasedCoord(45, 115),
+        sideBiasedCoord(24, 72),
+        randomRange(-95, 30)
       );
       mesh.rotation.set(Math.random(), Math.random(), Math.random());
-      const scale = randomRange(1.1, 3.8);
+      const scale = randomRange(1.2, 4.3);
       mesh.scale.set(scale, scale, scale);
       group.add(mesh);
     }
