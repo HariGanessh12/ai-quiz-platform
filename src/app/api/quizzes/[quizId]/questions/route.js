@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
-import { connectMongo } from "@/lib/mongodb";
-import Quiz from "@/models/Quiz";
+import { isUuid } from "@/server/db/postgres";
+import { addQuestionToQuiz, getQuizById, quizExists } from "@/server/repositories/quizzes";
 
 export async function POST(req, { params }) {
   try {
-    await connectMongo();
     const { quizId } = await params;
     const { question, options, correctIndex } = await req.json();
 
-    if (!quizId || !mongoose.Types.ObjectId.isValid(quizId)) {
-      return NextResponse.json({ error: "A valid quizId is required." }, { status: 400 });
+    if (!quizId || !isUuid(quizId)) {
+      return NextResponse.json({ success: false, error: "A valid quizId is required." }, { status: 400 });
     }
 
     const trimmedQuestion = question?.trim();
@@ -20,41 +18,32 @@ export async function POST(req, { params }) {
     const parsedCorrectIndex = Number(correctIndex);
 
     if (!trimmedQuestion) {
-      return NextResponse.json({ error: "Question text is required." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Question text is required." }, { status: 400 });
     }
 
     if (cleanedOptions.length !== 4) {
-      return NextResponse.json({ error: "Please provide exactly four options." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Please provide exactly four options." }, { status: 400 });
     }
 
     if (!Number.isInteger(parsedCorrectIndex) || parsedCorrectIndex < 0 || parsedCorrectIndex > 3) {
-      return NextResponse.json({ error: "Choose a valid correct option." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Choose a valid correct option." }, { status: 400 });
     }
 
-    const correctAnswer = cleanedOptions[parsedCorrectIndex];
+    const exists = await quizExists(quizId);
+    if (!exists) {
+      return NextResponse.json({ success: false, error: "Quiz not found." }, { status: 404 });
+    }
 
-    const quiz = await Quiz.findByIdAndUpdate(
+    const quiz = await addQuestionToQuiz({
       quizId,
-      {
-        $push: {
-          questions: {
-            question: trimmedQuestion,
-            options: cleanedOptions,
-            correctIndex: parsedCorrectIndex,
-            correctAnswer,
-          },
-        },
-      },
-      { new: true, runValidators: true }
-    ).lean();
+      question: trimmedQuestion,
+      options: cleanedOptions,
+      correctIndex: parsedCorrectIndex,
+      correctAnswer: cleanedOptions[parsedCorrectIndex],
+    });
 
-    if (!quiz) {
-      return NextResponse.json({ error: "Quiz not found." }, { status: 404 });
-    }
-
-    return NextResponse.json({ quiz, created: true }, { status: 201 });
+    return NextResponse.json({ success: true, data: quiz, quiz, created: true }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-

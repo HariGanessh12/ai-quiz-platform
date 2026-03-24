@@ -1,9 +1,9 @@
 import "./globals.css";
-import SmoothScroll from "@/components/SmoothScroll";
+import SmoothScroll from "@/components/layout/SmoothScroll";
 
 export const metadata = {
   title: "AI Quiz Generator",
-  description: "Generate quizzes and build folder-based quiz sets with MongoDB.",
+  description: "Generate quizzes and build folder-based quiz sets with PostgreSQL.",
 };
 
 export default function RootLayout({ children }) {
@@ -29,3 +29,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

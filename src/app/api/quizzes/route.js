@@ -1,53 +1,50 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
-import { connectMongo } from "@/lib/mongodb";
-import Folder from "@/models/Folder";
-import Quiz from "@/models/Quiz";
+import { isUuid } from "@/server/db/postgres";
+import { createQuiz, getExistingQuiz, listQuizzesByFolderId } from "@/server/repositories/quizzes";
+import { getFolderById } from "@/server/repositories/folders";
 
 export async function GET(req) {
   try {
-    await connectMongo();
     const { searchParams } = new URL(req.url);
     const folderId = searchParams.get("folderId");
 
-    if (!folderId || !mongoose.Types.ObjectId.isValid(folderId)) {
-      return NextResponse.json({ error: "A valid folderId is required." }, { status: 400 });
+    if (!folderId || !isUuid(folderId)) {
+      return NextResponse.json({ success: false, error: "A valid folderId is required." }, { status: 400 });
     }
 
-    const quizzes = await Quiz.find({ folderId }).sort({ createdAt: -1 }).lean();
-    return NextResponse.json({ quizzes });
+    const quizzes = await listQuizzesByFolderId(folderId);
+    return NextResponse.json({ success: true, count: quizzes.length, data: quizzes, quizzes });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req) {
   try {
-    await connectMongo();
     const { folderId, title } = await req.json();
     const trimmedTitle = title?.trim();
 
-    if (!folderId || !mongoose.Types.ObjectId.isValid(folderId)) {
-      return NextResponse.json({ error: "A valid folderId is required." }, { status: 400 });
+    if (!folderId || !isUuid(folderId)) {
+      return NextResponse.json({ success: false, error: "A valid folderId is required." }, { status: 400 });
     }
 
     if (!trimmedTitle) {
-      return NextResponse.json({ error: "Quiz title is required." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Quiz title is required." }, { status: 400 });
     }
 
-    const folder = await Folder.findById(folderId);
+    const folder = await getFolderById(folderId);
     if (!folder) {
-      return NextResponse.json({ error: "Folder not found." }, { status: 404 });
+      return NextResponse.json({ success: false, error: "Folder not found." }, { status: 404 });
     }
 
-    const existing = await Quiz.findOne({ folderId, title: trimmedTitle });
-    if (existing) {
-      return NextResponse.json({ quiz: existing, created: false });
+    const existingQuiz = await getExistingQuiz({ folderId, title: trimmedTitle });
+    if (existingQuiz) {
+      return NextResponse.json({ success: true, data: existingQuiz, quiz: existingQuiz, created: false });
     }
 
-    const quiz = await Quiz.create({ folderId, title: trimmedTitle });
-    return NextResponse.json({ quiz, created: true }, { status: 201 });
+    const quiz = await createQuiz({ folderId, title: trimmedTitle });
+    return NextResponse.json({ success: true, data: quiz, quiz, created: true }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
