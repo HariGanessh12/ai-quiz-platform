@@ -30,6 +30,21 @@ Each object must have this exact structure:
         question: `Mock Question 2 about ${topic} (${difficulty})`,
         options: ["Option 1", "Option 2", "Option 3", "Option 4"],
         correctAnswer: "Option 2"
+      },
+      {
+        question: `Mock Question 3 about ${topic} (${difficulty})`,
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correctAnswer: "Option 1"
+      },
+      {
+        question: `Mock Question 4 about ${topic} (${difficulty})`,
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correctAnswer: "Option 3"
+      },
+      {
+        question: `Mock Question 5 about ${topic} (${difficulty})`,
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correctAnswer: "Option 4"
       }
     ];
 

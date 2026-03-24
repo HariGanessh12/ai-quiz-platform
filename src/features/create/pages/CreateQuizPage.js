@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import ThemeToggle from "@/components/layout/ThemeToggle";
+import Navbar from "@/components/layout/Navbar";
 
 const ThreeBackground = dynamic(() => import("@/components/layout/ThreeBackground"), {
   ssr: false,
@@ -423,5 +424,6 @@ export default function CreateQuizPage() {
     </main>
   );
 }
+
 
 
