@@ -316,6 +316,31 @@ body {
   line-height: 1.6;
 }
 
+.theme-toggle {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 1000;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 25px -12px var(--accent-glow);
+}
+
 .quiz-generator {
   background: var(--card-bg);
   backdrop-filter: blur(16px);
@@ -470,5 +495,12 @@ body {
 
   .header h1 {
     font-size: 2.4rem;
+  }
+
+  .theme-toggle {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
   }
 }

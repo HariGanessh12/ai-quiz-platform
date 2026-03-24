@@ -59,15 +59,34 @@ export default function ThreeBackground() {
       opacity: 0.14,
     });
 
-    for (let i = 0; i < 15; i++) {
+    const randomRange = (min, max) => Math.random() * (max - min) + min;
+    const randomSign = () => (Math.random() > 0.5 ? 1 : -1);
+    const sideBiasedCoord = (innerMin, outerMax) => randomSign() * randomRange(innerMin, outerMax);
+
+    // Wider base field
+    for (let i = 0; i < 18; i++) {
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(
-        (Math.random() - 0.5) * 40,
-        (Math.random() - 0.5) * 40,
-        (Math.random() - 0.5) * 40
+        randomRange(-65, 65),
+        randomRange(-45, 45),
+        randomRange(-70, 35)
       );
       mesh.rotation.set(Math.random(), Math.random(), Math.random());
       const scale = Math.random() * 2 + 0.5;
+      mesh.scale.set(scale, scale, scale);
+      group.add(mesh);
+    }
+
+    // Extra edge-heavy meshes so sides/corners are always populated
+    for (let i = 0; i < 14; i++) {
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(
+        sideBiasedCoord(38, 95),
+        sideBiasedCoord(20, 58),
+        randomRange(-85, 20)
+      );
+      mesh.rotation.set(Math.random(), Math.random(), Math.random());
+      const scale = randomRange(1.1, 3.8);
       mesh.scale.set(scale, scale, scale);
       group.add(mesh);
     }
