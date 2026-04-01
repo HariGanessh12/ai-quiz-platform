@@ -1,4 +1,4 @@
-import { getQuizById, mapQuiz, query } from "@/server/db/postgres";
+import { getQuizById, mapFolder, mapQuiz, query } from "@/server/db/postgres";
 
 export async function listQuizzesByFolderId(folderId) {
   const result = await query(
@@ -28,6 +28,35 @@ export async function listQuizzesByFolderId(folderId) {
   }
 
   return result.rows.map((row) => mapQuiz(row, Array(countMap.get(row.id) || 0).fill(null)));
+}
+
+export async function listAllQuizzes() {
+  const result = await query(
+    `
+      SELECT q.id, q.folder_id, q.title, q.created_at, q.updated_at,
+             f.id AS folder_ref_id, f.name AS folder_name, f.slug AS folder_slug, f.description AS folder_description,
+             f.created_at AS folder_created_at, f.updated_at AS folder_updated_at,
+             COUNT(ques.id)::int AS question_count
+      FROM quizzes q
+      JOIN folders f ON f.id = q.folder_id
+      LEFT JOIN questions ques ON ques.quiz_id = q.id
+      GROUP BY q.id, f.id
+      ORDER BY q.created_at DESC
+    `
+  );
+
+  return result.rows.map((row) => {
+    const folder = mapFolder({
+      id: row.folder_ref_id,
+      name: row.folder_name,
+      slug: row.folder_slug,
+      description: row.folder_description,
+      created_at: row.folder_created_at,
+      updated_at: row.folder_updated_at,
+    });
+
+    return mapQuiz(row, Array(row.question_count || 0).fill(null), folder);
+  });
 }
 
 export async function createQuiz({ folderId, title }) {

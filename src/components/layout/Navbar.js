@@ -1,29 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BrainCircuit, FilePlus2, FolderPlus, Home, LayoutDashboard, Menu, PlusCircle, X } from "lucide-react";
+import { BrainCircuit, FilePlus2, Home, LayoutDashboard, Menu, PlusCircle, X } from "lucide-react";
 
-const baseNavItems = [
+const navItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Generate Quiz", href: "/generate", icon: BrainCircuit },
   { name: "Create Quiz", href: "/create", icon: PlusCircle },
-  { name: "Quiz Setup", href: "/create-quiz", icon: FolderPlus },
+  { name: "Attend Quiz", href: "/quiz", icon: FilePlus2 },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-
-  const navItems = useMemo(() => {
-    if (pathname?.startsWith("/quiz/")) {
-      return [...baseNavItems, { name: "Attend Quiz", href: pathname, icon: FilePlus2 }];
-    }
-
-    return baseNavItems;
-  }, [pathname]);
 
   return (
     <nav className="site-navbar">
@@ -37,7 +29,9 @@ export default function Navbar() {
 
         <div className="site-navbar-links">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === "/quiz"
+              ? pathname === "/quiz" || pathname?.startsWith("/quiz/")
+              : pathname === item.href;
             const Icon = item.icon;
 
             return (
@@ -66,7 +60,9 @@ export default function Navbar() {
       {isOpen && (
         <div className="site-navbar-mobile">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === "/quiz"
+              ? pathname === "/quiz" || pathname?.startsWith("/quiz/")
+              : pathname === item.href;
             const Icon = item.icon;
 
             return (

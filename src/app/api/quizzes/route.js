@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isUuid } from "@/server/db/postgres";
-import { createQuiz, getExistingQuiz, listQuizzesByFolderId } from "@/server/repositories/quizzes";
+import { createQuiz, getExistingQuiz, listAllQuizzes, listQuizzesByFolderId } from "@/server/repositories/quizzes";
 import { getFolderById } from "@/server/repositories/folders";
 
 export async function GET(req) {
@@ -8,7 +8,12 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const folderId = searchParams.get("folderId");
 
-    if (!folderId || !isUuid(folderId)) {
+    if (!folderId) {
+      const quizzes = await listAllQuizzes();
+      return NextResponse.json({ success: true, count: quizzes.length, data: quizzes, quizzes });
+    }
+
+    if (!isUuid(folderId)) {
       return NextResponse.json({ success: false, error: "A valid folderId is required." }, { status: 400 });
     }
 

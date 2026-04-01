@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,6 +40,7 @@ export default function AttendQuizPage({ quizId }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,6 +59,9 @@ export default function AttendQuizPage({ quizId }) {
 
         if (isMounted) {
           setQuiz(data.quiz || null);
+          setCurrentQuestionIndex(0);
+          setAnswers({});
+          setIsSubmitted(false);
         }
       } catch (err) {
         if (isMounted) {
@@ -78,26 +82,33 @@ export default function AttendQuizPage({ quizId }) {
   }, [quizId]);
 
   const questionCount = quiz?.questions?.length || 0;
+  const currentQuestion = quiz?.questions?.[currentQuestionIndex] || null;
 
   const results = useMemo(() => {
     if (!quiz?.questions?.length) {
-      return { correctCount: 0, percentage: 0 };
+      return { correctCount: 0, percentage: 0, statuses: [] };
     }
 
-    const correctCount = quiz.questions.reduce((count, question, index) => {
+    const statuses = quiz.questions.map((question, index) => {
       const selectedIndex = answers[index];
       const correctIndex = getQuestionCorrectIndex(question);
-      return count + (selectedIndex === correctIndex ? 1 : 0);
-    }, 0);
+      return {
+        index,
+        isCorrect: selectedIndex === correctIndex,
+      };
+    });
+
+    const correctCount = statuses.filter((item) => item.isCorrect).length;
 
     return {
       correctCount,
       percentage: Math.round((correctCount / quiz.questions.length) * 100),
+      statuses,
     };
   }, [answers, quiz]);
 
   const answeredCount = Object.keys(answers).length;
-  const canSubmit = questionCount > 0 && answeredCount === questionCount && !isSubmitted;
+  const isLastQuestion = currentQuestionIndex === questionCount - 1;
 
   const handleAnswerSelect = (questionIndex, optionIndex) => {
     if (isSubmitted) return;
@@ -108,8 +119,22 @@ export default function AttendQuizPage({ quizId }) {
     }));
   };
 
+  const goToNextQuestion = () => {
+    setCurrentQuestionIndex((current) => Math.min(current + 1, questionCount - 1));
+  };
+
+  const goToPreviousQuestion = () => {
+    setCurrentQuestionIndex((current) => Math.max(current - 1, 0));
+  };
+
+  const handleSkip = () => {
+    if (!isLastQuestion) {
+      goToNextQuestion();
+    }
+  };
+
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (questionCount === 0) return;
     setIsSubmitted(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -121,7 +146,12 @@ export default function AttendQuizPage({ quizId }) {
         <motion.div className="content" variants={pageVariants} initial="hidden" animate="show">
           <motion.header className="header" variants={itemVariants}>
             <h1>{quiz?.title || "Attend Quiz"}</h1>
-            {quiz?.folder?.description ? <p>{quiz.folder.description}</p> : null}
+            {quiz?.folder ? (
+              <p>
+                {quiz.folder.name}
+                {quiz.folder.description ? ` | ${quiz.folder.description}` : ""}
+              </p>
+            ) : null}
           </motion.header>
 
           {loading ? (
@@ -156,77 +186,102 @@ export default function AttendQuizPage({ quizId }) {
                     <span className="attend-quiz-result-label">Final Score</span>
                     <h2>{results.correctCount}/{questionCount}</h2>
                     <p>{results.percentage}% correct</p>
+                    <div className="attend-quiz-score-strip">
+                      {results.statuses.map((item) => (
+                        <span
+                          key={item.index}
+                          className={`attend-quiz-score-pill ${item.isCorrect ? "is-correct" : "is-wrong"}`}
+                        >
+                          {item.index + 1}
+                        </span>
+                      ))}
+                    </div>
                   </motion.section>
                 ) : null}
               </AnimatePresence>
 
               <motion.section className="section-stack" variants={itemVariants}>
                 <div className="attend-quiz-progress">
+                  <span>Question {currentQuestionIndex + 1} of {questionCount}</span>
                   <span>{answeredCount}/{questionCount} answered</span>
-                  <span>{isSubmitted ? "Answers locked" : "You can change answers before submitting"}</span>
                 </div>
 
-                <div className="section-stack">
-                  {quiz.questions.map((question, questionIndex) => {
-                    const selectedIndex = answers[questionIndex];
-                    const correctIndex = getQuestionCorrectIndex(question);
+                {currentQuestion ? (
+                  <motion.article
+                    key={currentQuestionIndex}
+                    className="question-card attend-quiz-card"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
+                    <div className="attend-quiz-question-meta">
+                      <h3>Question {currentQuestionIndex + 1}</h3>
+                      <span>
+                        {answers[currentQuestionIndex] === undefined ? "Not answered" : "Answered"}
+                      </span>
+                    </div>
+                    <p className="question-text">{currentQuestion.question}</p>
 
-                    return (
-                      <motion.article
-                        key={question.id || `${question.question}-${questionIndex}`}
-                        className="question-card attend-quiz-card"
-                        variants={itemVariants}
-                      >
-                        <div className="attend-quiz-question-meta">
-                          <h3>Question {questionIndex + 1}</h3>
-                          <span>{selectedIndex === undefined ? "Not answered" : "Answered"}</span>
-                        </div>
-                        <p className="question-text">{question.question}</p>
+                    <div className="attend-quiz-options">
+                      {currentQuestion.options.map((option, optionIndex) => {
+                        const letter = String.fromCharCode(65 + optionIndex);
+                        const selectedIndex = answers[currentQuestionIndex];
+                        const correctIndex = getQuestionCorrectIndex(currentQuestion);
+                        const isSelected = selectedIndex === optionIndex;
+                        const isCorrect = isSubmitted && optionIndex === correctIndex;
+                        const isWrongSelection = isSubmitted && isSelected && optionIndex !== correctIndex;
 
-                        <div className="attend-quiz-options">
-                          {question.options.map((option, optionIndex) => {
-                            const letter = String.fromCharCode(65 + optionIndex);
-                            const isSelected = selectedIndex === optionIndex;
-                            const isCorrect = isSubmitted && optionIndex === correctIndex;
-                            const isWrongSelection = isSubmitted && isSelected && optionIndex !== correctIndex;
+                        const stateClass = isCorrect
+                          ? "is-correct"
+                          : isWrongSelection
+                            ? "is-wrong"
+                            : isSelected
+                              ? "is-selected"
+                              : "";
 
-                            const stateClass = isCorrect
-                              ? "is-correct"
-                              : isWrongSelection
-                                ? "is-wrong"
-                                : isSelected
-                                  ? "is-selected"
-                                  : "";
+                        return (
+                          <button
+                            key={`${currentQuestionIndex}-${optionIndex}`}
+                            type="button"
+                            className={`attend-quiz-option ${stateClass}`.trim()}
+                            onClick={() => handleAnswerSelect(currentQuestionIndex, optionIndex)}
+                            disabled={isSubmitted}
+                          >
+                            <span className="attend-quiz-option-letter">{letter}</span>
+                            <span className="attend-quiz-option-text">{option}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.article>
+                ) : null}
 
-                            return (
-                              <button
-                                key={`${questionIndex}-${optionIndex}`}
-                                type="button"
-                                className={`attend-quiz-option ${stateClass}`.trim()}
-                                onClick={() => handleAnswerSelect(questionIndex, optionIndex)}
-                                disabled={isSubmitted}
-                              >
-                                <span className="attend-quiz-option-letter">{letter}</span>
-                                <span className="attend-quiz-option-text">{option}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </motion.article>
-                    );
-                  })}
-                </div>
+                <div className="attend-quiz-actions attend-quiz-actions--split">
+                  <button
+                    type="button"
+                    className="quiz-nav-btn"
+                    onClick={goToPreviousQuestion}
+                    disabled={currentQuestionIndex === 0 || isSubmitted}
+                  >
+                    Previous
+                  </button>
 
-                <div className="attend-quiz-actions">
-                  {!isSubmitted ? (
-                    <button type="button" className="generate-btn attend-quiz-submit" disabled={!canSubmit} onClick={handleSubmit}>
+                  {!isSubmitted && !isLastQuestion ? (
+                    <div className="attend-quiz-action-group">
+                      <button type="button" className="quiz-nav-btn" onClick={handleSkip}>
+                        Skip
+                      </button>
+                      <button type="button" className="generate-btn attend-quiz-submit" onClick={goToNextQuestion}>
+                        Next
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {!isSubmitted && isLastQuestion ? (
+                    <button type="button" className="generate-btn attend-quiz-submit" onClick={handleSubmit}>
                       Submit Quiz
                     </button>
-                  ) : (
-                    <div className="notice-message">
-                      Review complete. Correct answers are highlighted in green and incorrect selections in red.
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </motion.section>
             </>
@@ -236,5 +291,3 @@ export default function AttendQuizPage({ quizId }) {
     </main>
   );
 }
-
-
