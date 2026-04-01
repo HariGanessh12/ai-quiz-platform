@@ -1,19 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BrainCircuit, Home, LayoutDashboard, Menu, PlusCircle, X } from "lucide-react";
+import { BrainCircuit, FilePlus2, FolderPlus, Home, LayoutDashboard, Menu, PlusCircle, X } from "lucide-react";
 
-const navItems = [
+const baseNavItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "Generate Quiz", href: "/generate", icon: BrainCircuit },
   { name: "Create Quiz", href: "/create", icon: PlusCircle },
+  { name: "Quiz Setup", href: "/create-quiz", icon: FolderPlus },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  const navItems = useMemo(() => {
+    if (pathname?.startsWith("/quiz/")) {
+      return [...baseNavItems, { name: "Attend Quiz", href: pathname, icon: FilePlus2 }];
+    }
+
+    return baseNavItems;
+  }, [pathname]);
 
   return (
     <nav className="site-navbar">

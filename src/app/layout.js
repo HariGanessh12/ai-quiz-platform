@@ -1,5 +1,6 @@
 import "./globals.css";
 import SmoothScroll from "@/components/layout/SmoothScroll";
+import Navbar from "@/components/layout/Navbar";
 
 export const metadata = {
   title: "AI Quiz Generator",
@@ -24,9 +25,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <SmoothScroll>{children}</SmoothScroll>
+        <SmoothScroll>
+          <Navbar />
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );
 }
-
