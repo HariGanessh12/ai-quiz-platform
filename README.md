@@ -158,22 +158,6 @@ DIRECT_URL=your_direct_database_connection_string
 - `PATCH /api/quizzes/[quizId]/questions/[questionId]`: update a question
 - `DELETE /api/quizzes/[quizId]/questions/[questionId]`: delete a question
 
-## Screenshots
-
-Add screenshots here after capturing the UI:
-
-- `docs/screenshots/home.png` - Landing page
-- `docs/screenshots/generator.png` - AI quiz generation flow
-- `docs/screenshots/create.png` - Quiz and question creation workspace
-- `docs/screenshots/dashboard.png` - Folder dashboard
-- `docs/screenshots/attend-quiz.png` - Quiz-taking experience
-
-Example markdown:
-
-```md
-![Home Screen](docs/screenshots/home.png)
-```
-
 ## Future Improvements
 
 - Re-enable live Gemini and Groq generation with better response validation
